@@ -6,8 +6,12 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +34,13 @@ import retrofit2.Response;
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
 
+    @BindView(R.id.radioGrp)
+    RadioGroup _group;
+    @BindView(R.id.input_province)
+    AutoCompleteTextView _namerovince;
+    @BindView(R.id.input_age)
+    EditText _nameAge;
+
     @BindView(R.id.input_name)
     EditText _nameText;
     @BindView(R.id.input_address)
@@ -46,6 +57,14 @@ public class SignupActivity extends AppCompatActivity {
     Button _signupButton;
     @BindView(R.id.link_login)
     TextView _loginLink;
+
+
+    private static final String[] COUNTRIES = new String[]{
+            "0", "Quảng Nam", "Quảng Ngãi", "Đà Nẵng", "Bình Định", "Hà Nội", "Phú Thọ", "Đắk Lắk", "Sơn La", "Hà Nam", "Bắc Giang", "Yên Bái", "Gia Lai", "Khánh Hòa", "Cần Thơ", "Đồng Tháp", "Hưng Yên", "Kiên Giang", "Thái Bình", "Ninh Bình", "Lạng Sơn", "Vĩnh Long", "Tiền Giang", "Hậu Giang", "Bình Phước", "Thanh Hóa", "Vĩnh Phúc", "Hòa Bình", "Tuyên Quang", "Thái Nguyên", "Hải Dương", "Đồng Nai", "Lâm Đồng", "Hồ Chí Minh", "Thừa Thiên Huế", "Long An", "Phú Yên", "Kon Tum", "Tây Ninh", "Bình Dương", "Bình Thuận", "Bà Rịa-Vũng Tàu", "Quảng Ninh", "Lai Châu", "Bắc Ninh", "Sóc Trăng", "Bạc Liêu", "Hà Giang", "Hải Phòng", "Cao Bằng", "Bắc Kạn", "Đắk Nông", "An Giang", "Bến Tre", "Trà Vinh", "Lào Cai", "Nam Định", "Ninh Thuận", "Quảng Trị", "Quảng Bình", "Nghệ An", "Hà Tĩnh", "Cà Mau", "Điện Biên"
+    };
+
+    private static int numvince, gens;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,6 +89,24 @@ public class SignupActivity extends AppCompatActivity {
                 overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
             }
         });
+
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_dropdown_item_1line, COUNTRIES);
+        _namerovince.setAdapter(adapter);
+
+
+        _group.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                                              @Override
+                                              public void onCheckedChanged(RadioGroup group, int checkedId) {
+                                                  gens = checkedId;
+                                                  RadioButton radioButton = (RadioButton) findViewById(checkedId);
+                                                  Toast.makeText(getBaseContext(), radioButton.getText(), Toast.LENGTH_SHORT).show();
+                                              }
+                                          }
+        );
+
+
     }
 
     public void signup() {
@@ -94,7 +131,7 @@ public class SignupActivity extends AppCompatActivity {
         String mobile = _mobileText.getText().toString();
         String password = _passwordText.getText().toString();
         String reEnterPassword = _reEnterPasswordText.getText().toString();
-
+        String age = _nameAge.getText().toString();
         // TODO: Implement your own signup logic here.
 
 
@@ -106,7 +143,9 @@ public class SignupActivity extends AppCompatActivity {
         map.put("passWord", password);
         map.put("timeRecorder", "30");
         map.put("email", email);
-        map.put("phone", mobile);
+        map.put("province", numvince + "");
+        map.put("old", age);
+        map.put("gender", gens + "");
 
         Call<Respose> call2 = apiService2.register(map);
 
@@ -171,6 +210,8 @@ public class SignupActivity extends AppCompatActivity {
         String mobile = _mobileText.getText().toString();
         String password = _passwordText.getText().toString();
         String reEnterPassword = _reEnterPasswordText.getText().toString();
+        String province = _namerovince.getText().toString();
+        String age = _nameAge.getText().toString();
 
         if (name.isEmpty() || name.length() < 3) {
             _nameText.setError("at least 3 characters");
@@ -200,6 +241,26 @@ public class SignupActivity extends AppCompatActivity {
         } else {
             _mobileText.setError(null);
         }
+
+        if (age.isEmpty()) {
+            _nameAge.setError("Enter Valid Age");
+            valid = false;
+        } else {
+            _nameAge.setError(null);
+        }
+
+        if (province.isEmpty()) {
+            _namerovince.setError("Enter Valid Province");
+            valid = false;
+        } else {
+            for (int i = 0; i < COUNTRIES.length; i++) {
+                if (province.equals(COUNTRIES[i])) {
+                    numvince = i;
+                }
+            }
+            _namerovince.setError(null);
+        }
+
 
         if (password.isEmpty() || password.length() < 4 || password.length() > 10) {
             _passwordText.setError("between 4 and 10 alphanumeric characters");
