@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
     Button _loginButton;
     @BindView(R.id.link_signup)
     TextView _signupLink;
-    
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -101,12 +101,16 @@ public class MainActivity extends AppCompatActivity {
         ApiInterface apiService =
                 ApiClient.getClient().create(ApiInterface.class);
 
-
         HashMap<String, String> map = new HashMap<>();
-        map.put("email", "phamduybk@gmail.com");
-        map.put("password","123456");
+        if (_emailText.getText().toString().equals("")) {
+            map.put("email", "phamduybk@gmail.com");
+            map.put("password", "123456");
+        } else {
+            map.put("email", _emailText.getText().toString());
+            map.put("password", _passwordText.getText().toString());
+        }
 
-        StorageManager.setStringValue(getApplicationContext(),Const.NAME_CONSUMER,"phamduybk@gmail.com");
+        StorageManager.setStringValue(getApplicationContext(), Const.NAME_CONSUMER, "phamduybk@gmail.com");
         Call<User> call = apiService.getTokenAuthen(map);
 
         call.enqueue(new Callback<User>() {
@@ -114,14 +118,14 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<User> call, Response<User> response) {
 
                 int statusCode = response.code();
-                if(statusCode == 200){
-                    if(response.body().getToken() != null){
+                if (statusCode == 200) {
+                    if (response.body().getToken() != null) {
                         StorageManager.setStringValue(getApplicationContext(), Const.TOKEN, response.body().getToken());
                         onLoginSuccess();
-                    }else{
+                    } else {
                         onLoginFailed("token null");
                     }
-                }else{
+                } else {
                     onLoginFailed(response.message());
                 }
             }
@@ -189,11 +193,12 @@ public class MainActivity extends AppCompatActivity {
 
         return valid;
     }
-    public void recordAudio(){
+
+    public void recordAudio() {
         ApiInterface apiService =
                 ApiClient.getClient().create(ApiInterface.class);
-        String token = "Bearer " + StorageManager.getStringValue(getApplicationContext(),Const.TOKEN,"");
-        Call<AudioResponse> call = apiService.getContent(0+"", token);
+        String token = "Bearer " + StorageManager.getStringValue(getApplicationContext(), Const.TOKEN, "");
+        Call<AudioResponse> call = apiService.getContent(0 + "", token);
         final AndroidAudioRecorder builder = new AndroidAudioRecorder(this);
         builder.setFilePath(AUDIO_FILE_PATH)
                 .setColor(ContextCompat.getColor(this, R.color.recorder_bg))
@@ -209,18 +214,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<AudioResponse> call, Response<AudioResponse> response) {
                 int statusCode = response.code();
-                if(statusCode == 200){
-                    if(response.body().getAudio() != null){
-                        StorageManager.setStringValue(getApplicationContext(),Const.ID_AUDIO,response.body().getAudio().getId()+"");
+                if (statusCode == 200) {
+                    if (response.body().getAudio() != null) {
+                        StorageManager.setStringValue(getApplicationContext(), Const.ID_AUDIO, response.body().getAudio().getId() + "");
                         builder.setSub(response.body().getAudio().getContent());
                         builder.record();
-                    }else{
+                    } else {
                         builder.setSub("Sorry content null");
                         builder.record();
                     }
 
-                }else{
-                    Toast.makeText(getApplicationContext(),"error getContent :"+ statusCode, Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getApplicationContext(), "error getContent :" + statusCode, Toast.LENGTH_LONG).show();
                 }
             }
 
